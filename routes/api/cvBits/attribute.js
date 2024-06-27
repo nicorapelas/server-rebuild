@@ -79,19 +79,19 @@ router.post('/', requireAuth, async (req, res) => {
   }
   try {
     await Attribute.deleteMany({ _user: req.user.id })
-    attributeArray.map(async attribute => {
-      const att = new Attribute({
-        _user: req.user.id,
-        attribute: attribute.attribute
+    await Promise.all(
+      attributeArray.map(async (attribute) => {
+        const att = new Attribute({
+          _user: req.user.id,
+          attribute: attribute.attribute,
+        })
+        await att.save()
       })
-      await att.save()
-    })
-    const attributes = await Attribute.find({ _user: req.user.id })
+    )
+    const attributes = await Attribute.find({ _user: req.user._id })
     res.json(attributes)
-    return
   } catch (error) {
     console.log(error)
-    return
   }
 })
 
@@ -104,10 +104,10 @@ router.patch('/:id', requireAuth, async (req, res) => {
     // Query unique
     let attributeSelected = await Attribute.findById(req.params.id)
     let queryDB = await Attribute.find({ _user: req.user.id })
-    let usersAttributes = queryDB.map(query => {
+    let usersAttributes = queryDB.map((query) => {
       return query.attribute
     })
-    let compare = usersAttributes.find(att => {
+    let compare = usersAttributes.find((att) => {
       return att === queryInput
     })
     if (!attributeSelected) {
@@ -133,7 +133,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
@@ -155,12 +155,10 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Attribute' requested not found` })
       return
     }
-    // Return deleted attribute
-    res.json(attribute)
-    return
+    const updatedAttributes = await Attribute.find({ _user: req.user.id })
+    res.json(updatedAttributes)
   } catch (err) {
     console.log(err)
-    return
   }
 })
 
