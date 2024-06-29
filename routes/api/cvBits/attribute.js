@@ -99,49 +99,46 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update an attribute
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  let queryInput = req.body.attribute
+  const { attribute } = req.body
+  if (!attribute || attribute.length < 1) {
+    return res.status(400).json({ error: 'Attribute is required' })
+  }
   try {
     // Query unique
-    let attributeSelected = await Attribute.findById(req.params.id)
-    let queryDB = await Attribute.find({ _user: req.user.id })
-    let usersAttributes = queryDB.map((query) => {
-      return query.attribute
-    })
-    let compare = usersAttributes.find((att) => {
-      return att === queryInput
-    })
+    const attributeSelected = await Attribute.findById(req.params.id)
     if (!attributeSelected) {
-      res.json({ error: `'Attribute' requested not found` })
-      return
+      return res.status(404).json({ error: 'Attribute requested not found' })
     }
-    if (queryInput === attributeSelected.attribute) {
-      res.json({ error: `'Attribute' unique query failed` })
-      return
+    const userAttributes = await Attribute.find({ _user: req.user.id })
+    const usersAttributes = userAttributes.map((attr) => attr.attribute)
+    const duplicateAttribute = usersAttributes.find((att) => att === attribute)
+    if (attribute === attributeSelected.attribute) {
+      return res.status(400).json({ error: 'Attribute unique query failed' })
     }
-    if (compare) {
+    if (duplicateAttribute) {
       await Attribute.findByIdAndRemove(req.params.id)
-      res.json({ error: `'Attribute' unique query failed` })
-      return
+      return res.status(400).json({ error: 'Attribute unique query failed' })
     }
-    if (queryInput.length < 1) {
-      res.json({ error: `'Attribute' is required` })
-      return
-    }
-    // Do update
-    const attribute = await Attribute.findByIdAndUpdate(
+    // Update attribute
+    const updatedAttribute = await Attribute.findByIdAndUpdate(
       req.params.id,
       {
         _user: req.user.id,
         lastUpdate: new Date(),
+        attribute,
         ...req.body,
       },
       { new: true }
     )
-    res.json(attribute)
-    return
+    // Fetch updated user's attribute collection
+    const updatedUserAttributes = await Attribute.find({ _user: req.user.id })
+    return res.json({
+      updatedAttribute,
+      userAttributes: updatedUserAttributes,
+    })
   } catch (err) {
-    console.log(err)
-    return
+    console.error(err)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 })
 
