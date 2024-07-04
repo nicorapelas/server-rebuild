@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const Attribute = mongoose.model('Attribute')
 const keys = require('../../../config/keys').keys
 const requireAuth = require('../../../middlewares/requireAuth')
+const { log } = require('async')
 
 const router = express.Router()
 
@@ -120,7 +121,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Attribute unique query failed' })
     }
     // Update attribute
-    const updatedAttribute = await Attribute.findByIdAndUpdate(
+    await Attribute.findByIdAndUpdate(
       req.params.id,
       {
         _user: req.user.id,
@@ -132,10 +133,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     )
     // Fetch updated user's attribute collection
     const updatedUserAttributes = await Attribute.find({ _user: req.user.id })
-    return res.json({
-      updatedAttribute,
-      userAttributes: updatedUserAttributes,
-    })
+    return res.json(updatedUserAttributes)
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: 'Internal server error' })

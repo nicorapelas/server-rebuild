@@ -79,19 +79,19 @@ router.post('/', requireAuth, async (req, res) => {
   }
   try {
     await Interest.deleteMany({ _user: req.user.id })
-    interestArray.map(async interest => {
-      const int = new Interest({
-        _user: req.user.id,
-        interest: interest.interest
+    await Promise.all(
+      interestArray.map(async (interest) => {
+        const int = new Interest({
+          _user: req.user.id,
+          interest: interest.interest,
+        })
+        await int.save()
       })
-      await int.save()
-    })
-    const interests = await Interest.find({ _user: req.user.id })
+    )
+    const interests = await Interest.find({ _user: req.user._id })
     res.json(interests)
-    return
   } catch (error) {
     console.log(error)
-    return
   }
 })
 
@@ -104,10 +104,10 @@ router.patch('/:id', requireAuth, async (req, res) => {
   try {
     let interestSelected = await Interest.findById(req.params.id)
     let queryDB = await Interest.find({ _user: req.user.id })
-    let usersInterests = queryDB.map(query => {
+    let usersInterests = queryDB.map((query) => {
       return query.interest
     })
-    let compare = usersInterests.find(int => {
+    let compare = usersInterests.find((int) => {
       return int === queryInput
     })
     if (!interestSelected) {
@@ -133,7 +133,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
