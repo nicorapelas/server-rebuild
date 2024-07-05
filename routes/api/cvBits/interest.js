@@ -99,49 +99,43 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update a interest
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  // Query unique
-  let queryInput = req.body.interest
+  const { interest } = req.body
+  if (!interest || interest.length < 1) {
+    return res.status(400).json({ error: 'Interest is required' })
+  }
   try {
-    let interestSelected = await Interest.findById(req.params.id)
-    let queryDB = await Interest.find({ _user: req.user.id })
-    let usersInterests = queryDB.map((query) => {
-      return query.interest
-    })
-    let compare = usersInterests.find((int) => {
-      return int === queryInput
-    })
+    // Query unique
+    const interestSelected = await Interest.findById(req.params.id)
     if (!interestSelected) {
-      res.json({ error: `'Interest' requested not found` })
-      return
+      return res.status(404).json({ error: 'Interest requested not found' })
     }
-    if (queryInput === interestSelected.interest) {
-      res.json({ error: `'Interest' entered already exists` })
-      return
+    const userInterests = await Interest.find({ _user: req.user.id })
+    const usersInterests = userInterests.map((int) => int.interest)
+    const duplicateInterest = usersInterests.find((int) => int === interest)
+    if (interest === interestSelected.interest) {
+      return res.status(400).json({ error: 'Interest unique query failed' })
     }
-    if (compare) {
+    if (duplicateInterest) {
       await Interest.findByIdAndRemove(req.params.id)
-      res.json({ error: `'Interest' unique query failed` })
-      return
+      return res.status(400).json({ error: 'Interest unique query failed' })
     }
-    if (queryInput.length < 1) {
-      res.json({ error: `'Interest' is required` })
-      return
-    }
-    // Do update
-    const interest = await Interest.findByIdAndUpdate(
+    // Update interest
+    await Interest.findByIdAndUpdate(
       req.params.id,
       {
         _user: req.user.id,
         lastUpdate: new Date(),
+        interest,
         ...req.body,
       },
       { new: true }
     )
-    res.json(interest)
-    return
-  } catch (error) {
-    console.log(error)
-    return
+    // Fetch updated user's interest collection
+    const updatedUserInterests = await Interest.find({ _user: req.user.id })
+    return res.json(updatedUserInterests)
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ error: 'Internal server error' })
   }
 })
 
@@ -155,12 +149,10 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Interest' requested not found` })
       return
     }
-    // Return deleted interest
-    res.json(interest)
-    return
-  } catch (error) {
-    console.log(error)
-    return
+    const updatedInterests = await Interest.find({ _user: req.user.id })
+    res.json(updatedInterests)
+  } catch (err) {
+    console.log(err)
   }
 })
 
