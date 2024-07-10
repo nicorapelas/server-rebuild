@@ -28,7 +28,7 @@ router.get('/status', requireAuth, async (req, res) => {
 router.get('/sample', requireAuth, async (req, res) => {
   try {
     const skill = await Skill.find({
-      _user: keys.sampleCv.id
+      _user: keys.sampleCv.id,
     })
     res.json(skill)
     return
@@ -77,10 +77,10 @@ router.post('/', requireAuth, async (req, res) => {
   // Query unique
   let queryInput = req.body.skill
   let queryDB = await Skill.find({ _user: req.user.id })
-  let usersSkills = queryDB.map(query => {
+  let usersSkills = queryDB.map((query) => {
     return query.skill
   })
-  let compare = usersSkills.find(ski => {
+  let compare = usersSkills.find((ski) => {
     return ski === queryInput
   })
   if (queryInput.length < 1) {
@@ -95,10 +95,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Create attribute
     const skill = new Skill({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await skill.save()
-    res.json(skill)
+    let skills = await Skill.find({ _user: req.user.id })
+    res.json(skills)
     return
   } catch (error) {
     console.log(error)
@@ -128,7 +129,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
@@ -150,8 +151,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Skill' requested not found` })
       return
     }
-    // Return deleted skill
-    res.json(skill)
+    let skills = await Skill.find({ _user: req.user.id })
+    res.json(skills)
     return
   } catch (error) {
     console.log(error)
