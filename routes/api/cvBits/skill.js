@@ -124,7 +124,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   }
   try {
     // Do update
-    const skill = await Skill.findByIdAndUpdate(
+    await Skill.findByIdAndUpdate(
       req.params.id,
       {
         _user: req.user.id,
@@ -133,7 +133,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       },
       { new: true }
     )
-    res.json(skill)
+    let skills = await Skill.find({ _user: req.user.id })
+    res.json(skills)
     return
   } catch (error) {
     console.log(error)
