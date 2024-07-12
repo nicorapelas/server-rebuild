@@ -76,10 +76,10 @@ router.post('/', requireAuth, async (req, res) => {
   let queryInput = req.body.language
   try {
     let queryDB = await Language.find({ _user: req.user.id })
-    let usersLanguages = queryDB.map(query => {
+    let usersLanguages = queryDB.map((query) => {
       return query.language
     })
-    let compare = usersLanguages.find(lang => {
+    let compare = usersLanguages.find((lang) => {
       return lang === queryInput
     })
     if (queryInput.length < 1) {
@@ -93,10 +93,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Create attribute
     const language = new Language({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await language.save()
-    res.json(language)
+    let languages = await Language.find({ _user: req.user.id })
+    res.json(languages)
     return
   } catch (error) {
     console.log(error)
@@ -126,11 +127,12 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
-    res.json(language)
+    let languages = await Language.find({ _user: req.user.id })
+    res.json(languages)
     return
   } catch (error) {
     console.log(error)
