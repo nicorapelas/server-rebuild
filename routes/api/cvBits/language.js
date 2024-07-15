@@ -150,8 +150,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Languages' requested not found` })
       return
     }
-    // Return deleted language
-    res.json(language)
+    let languages = await Language.find({ _user: req.user.id })
+    res.json(languages)
     return
   } catch (error) {
     console.log(error)
