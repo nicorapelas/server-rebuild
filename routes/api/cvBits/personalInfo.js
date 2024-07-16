@@ -26,8 +26,8 @@ router.get('/status', requireAuth, async (req, res) => {
         ppNumber,
         saCitizen,
         nationality,
-        driversLicense
-      }
+        driversLicense,
+      },
     ] = personalInfo
     let [num1, num2, num3, num4, num5] = [0]
     !fullName ? (num1 = 0) : (num1 = 17)
@@ -75,7 +75,7 @@ router.get('/view-heading-sample', requireAuth, async (req, res) => {
     }
     const viewHeading = {
       fullName: personalInfo[0].fullName,
-      dateOfBirth: personalInfo[0].dateOfBirth
+      dateOfBirth: personalInfo[0].dateOfBirth,
     }
     res.json(viewHeading)
     return
@@ -102,7 +102,7 @@ router.get('/view-heading', requireAuth, async (req, res) => {
     }
     const viewHeading = {
       fullName: personalInfo[0].fullName,
-      dateOfBirth: personalInfo[0].dateOfBirth
+      dateOfBirth: personalInfo[0].dateOfBirth,
     }
     res.json(viewHeading)
     return
@@ -161,11 +161,12 @@ router.post('/', requireAuth, async (req, res) => {
       return
     }
     // Create personal info
-    const personalInfo = new PersonalInfo({
+    const newPersonalInfo = new PersonalInfo({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
-    await personalInfo.save()
+    await newPersonalInfo.save()
+    let personalInfo = await PersonalInfo.find({ _user: req.user.id })
     res.json(personalInfo)
     return
   } catch (error) {
@@ -189,7 +190,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
