@@ -194,10 +194,10 @@ router.patch('/:id', requireAuth, async (req, res) => {
       },
       { new: true }
     )
-    if (!personalInfo)
+    if (!personalInfo) {
       res.status(404).json({ error: `'Personal Info' requested not found` })
-    // Return updated genre
-    res.json(personalInfo)
+    }
+    res.json([personalInfo])
     return
   } catch (error) {
     console.log(error)
