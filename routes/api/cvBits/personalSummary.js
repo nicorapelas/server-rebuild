@@ -12,7 +12,7 @@ const router = express.Router()
 router.get('/status', requireAuth, async (req, res) => {
   try {
     const personalSummary = await PersonalSummary.find({
-      _user: req.user.id
+      _user: req.user.id,
     })
     if (!personalSummary || personalSummary.length < 1) {
       res.json('0')
@@ -35,7 +35,7 @@ router.get('/status', requireAuth, async (req, res) => {
 router.get('/sample', requireAuth, async (req, res) => {
   try {
     const personalSummary = await PersonalSummary.find({
-      _user: keys.sampleCv.id
+      _user: keys.sampleCv.id,
     })
     res.json(personalSummary)
     return
@@ -63,6 +63,7 @@ router.get('/', requireAuth, async (req, res) => {
 // @desc   Post personal summary
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
+  console.log(`body:`, req.body)
   try {
     // Query DB
     let firstCheck = await PersonalSummary.find({ _user: req.user.id })
@@ -78,7 +79,7 @@ router.post('/', requireAuth, async (req, res) => {
     // Create personal summary
     const personalSummary = new PersonalSummary({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await personalSummary.save()
     res.json(personalSummary)
@@ -122,7 +123,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
