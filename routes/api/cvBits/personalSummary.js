@@ -82,7 +82,7 @@ router.post('/', requireAuth, async (req, res) => {
       ...req.body,
     })
     await personalSummary.save()
-    res.json(personalSummary)
+    res.json([personalSummary])
     return
   } catch (error) {
     console.log(error)
@@ -111,6 +111,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @desc   Update PersonalSumarry
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
+  console.log(req.body)
   const { content } = req.body
   if (content.length < 1) {
     res.json({ error: `'Content' is required` })
@@ -123,11 +124,11 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body,
+        content,
       },
       { new: true }
     )
-    res.json(personalSummary)
+    res.json([personalSummary])
     return
   } catch (error) {
     console.log(error)
