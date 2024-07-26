@@ -17,9 +17,8 @@ router.get('/status', requireAuth, async (req, res) => {
       res.send('0')
       return
     }
-    const [
-      { phone, email, address, city, province, country, postalCode }
-    ] = contactInfo
+    const [{ phone, email, address, city, province, country, postalCode }] =
+      contactInfo
     let [num1, num2, num3] = [0]
     phone ? (num1 = 34) : (num1 = 0)
     email ? (num2 = 33) : (num2 = 0)
@@ -91,10 +90,10 @@ router.post('/', requireAuth, async (req, res) => {
     // Create contact info
     const contactInfo = new ContactInfo({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await contactInfo.save()
-    res.json(contactInfo)
+    res.json([contactInfo])
     return
   } catch (error) {
     console.log(error)
@@ -127,7 +126,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
