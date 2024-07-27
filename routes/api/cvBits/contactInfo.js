@@ -134,7 +134,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Contact info' requested not found` })
       return
     }
-    res.json(contactInfo)
+    res.json([contactInfo])
     return
   } catch (error) {
     console.log(error)
