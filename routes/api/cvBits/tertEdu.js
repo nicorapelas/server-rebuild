@@ -28,7 +28,7 @@ router.get('/status', requireAuth, async (req, res) => {
 router.get('/sample', requireAuth, async (req, res) => {
   try {
     const tertEdu = await TertEdu.find({
-      _user: keys.sampleCv.id
+      _user: keys.sampleCv.id,
     })
     res.json(tertEdu)
     return
@@ -87,10 +87,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Create tertEdu
     const tertEdu = new TertEdu({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await tertEdu.save()
-    res.json(tertEdu)
+    let tertEdus = await TertEdu.find({ _user: req.user.id })
+    res.json(tertEdus)
     return
   } catch (error) {
     console.log(error)
@@ -118,13 +119,13 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
     if (!tertEdu) {
       res.json({
-        error: { notFound: `'Tertiary Education' requested not found` }
+        error: { notFound: `'Tertiary Education' requested not found` },
       })
       return
     }
@@ -146,7 +147,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Tertiary education' requested not found` })
       return
     }
-    res.json(tertEdu)
+    let tertEdus = await TertEdu.find({ _user: req.user.id })
+    res.json(tertEdus)
     return
   } catch (error) {
     console.log(error)

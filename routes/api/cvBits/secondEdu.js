@@ -29,7 +29,7 @@ router.get('/status', requireAuth, async (req, res) => {
 router.get('/sample', requireAuth, async (req, res) => {
   try {
     const secondEdu = await SecondEdu.find({
-      _user: keys.sampleCv.id
+      _user: keys.sampleCv.id,
     })
     res.json(secondEdu)
     return
@@ -75,7 +75,6 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @desc   Post secondary education
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
-  console.log(req.body)
   const { schoolName, startDate, endDate } = req.body
   if (!schoolName || schoolName.length < 1) {
     res.json({ error: { schoolName: `'School Name' is required` } })
@@ -89,10 +88,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Create secondEdu
     const secondEdu = new SecondEdu({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await secondEdu.save()
-    res.json(secondEdu)
+    let secondEdus = await SecondEdu.find({ _user: req.user.id })
+    res.json(secondEdus)
     return
   } catch (error) {
     console.log(error)
@@ -104,7 +104,8 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update secondary education
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { schoolName, startDate, endDate } = req.body
+  const { schoolName, startDate, endDate, subjects, additionalInfo } =
+    req.body.formValues
   if (!schoolName || schoolName.length < 1) {
     res.json({ error: { schoolName: `'School Name' is required` } })
     return
@@ -120,17 +121,22 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        schoolName,
+        startDate,
+        endDate,
+        subjects,
+        additionalInfo,
       },
       { new: true }
     )
     if (!secondEdu) {
       res.json({
-        error: `'Secondary education' requested not found`
+        error: `'Secondary education' requested not found`,
       })
       return
     }
-    res.json(secondEdu)
+    let secondEdus = await SecondEdu.find({ _user: req.user.id })
+    res.json(secondEdus)
     return
   } catch (error) {
     console.log(error)
@@ -148,7 +154,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Secondary education' requested not found` })
       return
     }
-    res.json(secondEdu)
+    let secondEdus = await SecondEdu.find({ _user: req.user.id })
+    res.json(secondEdus)
     return
   } catch (error) {
     console.log(error)
