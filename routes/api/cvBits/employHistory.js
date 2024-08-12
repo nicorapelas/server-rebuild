@@ -86,10 +86,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Create employment history
     const employHistory = new EmployHistory({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await employHistory.save()
-    res.json(employHistory)
+    const employHistorys = await EmployHistory.find({ _user: req.user.id })
+    res.json(employHistorys)
     return
   } catch (error) {
     console.log(error)
@@ -117,7 +118,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
@@ -125,7 +126,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Employment history' requested not found` })
       return
     }
-    res.json(employHistory)
+    const employHistorys = await EmployHistory.find({ _user: req.user.id })
+    res.json(employHistorys)
     return
   } catch (error) {
     console.log(error)
