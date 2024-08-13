@@ -1,6 +1,6 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const moment = require('moment')
+// const moment = require('moment')
 const EmployHistory = mongoose.model('EmployHistory')
 const keys = require('../../../config/keys').keys
 const requireAuth = require('../../../middlewares/requireAuth')
@@ -73,13 +73,10 @@ router.get('/:id', async (req, res) => {
 // @desc   Post employment history
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
+  console.log(`body:`, req.body)
   const { company, startDate, endDate } = req.body
   if (company.length < 1) {
     res.json({ error: { company: `'Company Name' is required` } })
-    return
-  }
-  if (moment(startDate) > moment(endDate)) {
-    res.json({ error: { dates: `'Dates' are invalid` } })
     return
   }
   try {
@@ -107,10 +104,10 @@ router.patch('/:id', requireAuth, async (req, res) => {
     res.json({ error: { company: `'Company' is required` } })
     return
   }
-  if (moment(startDate) > moment(endDate)) {
-    res.json({ error: { dates: `'Dates' are invalid` } })
-    return
-  }
+  // if (moment(startDate) > moment(endDate)) {
+  //   res.json({ error: { dates: `'Dates' are invalid` } })
+  //   return
+  // }
   try {
     // Do update
     const employHistory = await EmployHistory.findByIdAndUpdate(
