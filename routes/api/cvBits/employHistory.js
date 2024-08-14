@@ -142,7 +142,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Employment history' requested not found` })
       return
     }
-    res.json(employHistory)
+    const employHistorys = await EmployHistory.find({ _user: req.user.id })
+    res.json(employHistorys)
     return
   } catch (error) {
     console.log(error)
