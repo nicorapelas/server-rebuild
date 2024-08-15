@@ -99,15 +99,11 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update employment history
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { company, startDate, endDate } = req.body
+  const { company } = req.body.formValues
   if (company.length < 1) {
     res.json({ error: { company: `'Company' is required` } })
     return
   }
-  // if (moment(startDate) > moment(endDate)) {
-  //   res.json({ error: { dates: `'Dates' are invalid` } })
-  //   return
-  // }
   try {
     // Do update
     const employHistory = await EmployHistory.findByIdAndUpdate(
@@ -115,7 +111,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body,
+        ...req.body.formValues,
       },
       { new: true }
     )
