@@ -81,10 +81,11 @@ router.post('/', requireAuth, async (req, res) => {
     // Create language
     const experience = new Experience({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await experience.save()
-    res.json(experience)
+    const experiences = await Experience.find({ _user: req.user.id })
+    res.json(experiences)
     return
   } catch (error) {
     console.log(error)
@@ -108,7 +109,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
@@ -116,7 +117,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Experience' requested not found` })
       return
     }
-    res.json(experience)
+    const experiences = await Experience.find({ _user: req.user.id })
+    res.json(experiences)
     return
   } catch (error) {
     console.log(error)
