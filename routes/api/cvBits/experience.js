@@ -97,7 +97,7 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update a experience
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { title } = req.body
+  const { title } = req.body.formValues
   if (title.length < 1) {
     res.json({ error: { title: `'Title' is required` } })
     return
@@ -109,7 +109,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body,
+        ...req.body.formValues,
       },
       { new: true }
     )
@@ -136,8 +136,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Experience' requested not found` })
       return
     }
-    // Return deleted experience
-    res.json(experience)
+    const experiences = await Experience.find({ _user: req.user.id })
+    res.json(experiences)
     return
   } catch (error) {
     console.log(error)

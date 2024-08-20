@@ -132,13 +132,16 @@ router.patch('/:id', requireAuth, async (req, res) => {
 // @desc   Delete emploment history
 // @access Private
 router.delete('/:id', requireAuth, async (req, res) => {
+  console.log(`req.params.id:`, req.params.id)
   try {
     const employHistory = await EmployHistory.findByIdAndRemove(req.params.id)
+    console.log(`remove:`, employHistory)
     if (!employHistory) {
       res.json({ error: `'Employment history' requested not found` })
       return
     }
     const employHistorys = await EmployHistory.find({ _user: req.user.id })
+    console.log(`employHistorys:`, employHistorys)
     res.json(employHistorys)
     return
   } catch (error) {

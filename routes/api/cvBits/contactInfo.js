@@ -52,7 +52,6 @@ router.get('/sample', requireAuth, async (req, res) => {
 // @desc   Get all current user contact info
 // @access Private
 router.get('/', requireAuth, async (req, res) => {
-  console.log(`at route`)
   try {
     const contactInfo = await ContactInfo.find({ _user: req.user.id })
     res.json(contactInfo)
