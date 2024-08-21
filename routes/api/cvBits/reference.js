@@ -29,7 +29,7 @@ router.get('/status', requireAuth, async (req, res) => {
 router.get('/sample', requireAuth, async (req, res) => {
   try {
     const reference = await Reference.find({
-      _user: keys.sampleCv.id
+      _user: keys.sampleCv.id,
     })
     res.json(reference)
     return
@@ -85,17 +85,18 @@ router.post('/', requireAuth, async (req, res) => {
     return
   }
   if (phone.length < 10 || phone.length > 14) {
-    res.json({ error: { phone: `''Phone number' is invalid` } })
+    res.json({ error: { phone: `'Phone number' is invalid` } })
     return
   }
   try {
     // Create reference
     const reference = new Reference({
       _user: req.user.id,
-      ...req.body
+      ...req.body,
     })
     await reference.save()
-    res.json(reference)
+    const references = await Reference.find({ _user: req.user.id })
+    res.json(references)
     return
   } catch (error) {
     console.log(error)
@@ -107,7 +108,7 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update a reference
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { name, phone } = req.body
+  const { name, phone } = req.body.formValues
   if (name.length < 1) {
     res.json({ error: { name: `'Name' is required` } })
     return
@@ -127,7 +128,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body.formValues,
       },
       { new: true }
     )
@@ -135,7 +136,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Reference' requested not found` })
       return
     }
-    res.json(reference)
+    const references = await Reference.find({ _user: req.user.id })
+    res.json(references)
     return
   } catch (error) {
     console.log(error)
@@ -153,8 +155,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Reference' requested not found` })
       return
     }
-    // Return deleted reference
-    res.json(reference)
+    const references = await Reference.find({ _user: req.user.id })
+    res.json(references)
     return
   } catch (error) {
     console.log(error)

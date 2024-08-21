@@ -78,7 +78,7 @@ router.post('/', requireAuth, async (req, res) => {
     return
   }
   try {
-    // Create language
+    // Create experience
     const experience = new Experience({
       _user: req.user.id,
       ...req.body,
