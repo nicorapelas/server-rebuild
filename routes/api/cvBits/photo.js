@@ -10,7 +10,7 @@ const router = express.Router()
 cloudinary.config({
   cloud_name: keys.cloudinary.cloud_name,
   api_key: keys.cloudinary.api_key,
-  api_secret: keys.cloudinary.api_secret
+  api_secret: keys.cloudinary.api_secret,
 })
 
 // @route  GET /api/photo/assigned
@@ -23,7 +23,7 @@ router.get('/assigned', requireAuth, async (req, res) => {
       res.json({ error: `'Assigned image' requested not found` })
       return
     }
-    const assignedPhoto = photo.filter(ph => {
+    const assignedPhoto = photo.filter((ph) => {
       return ph.assigned === true
     })
     if (!assignedPhoto || assignedPhoto.length === 0) {
@@ -49,7 +49,7 @@ router.get('/sample', requireAuth, async (req, res) => {
       res.json({ error: `'Assigned image' requested not found` })
       return
     }
-    const assignedPhoto = photo.filter(ph => {
+    const assignedPhoto = photo.filter((ph) => {
       return ph.assigned === true
     })
     if (!assignedPhoto || assignedPhoto.length === 0) {
@@ -124,16 +124,16 @@ router.get('/:id', requireAuth, async (req, res) => {
 router.post('/assign-photo', requireAuth, async (req, res) => {
   try {
     const photos = await Photo.find({ _user: req.user.id })
-    const previousAssignedPhoto = photos.filter(photo => {
+    const previousAssignedPhoto = photos.filter((photo) => {
       return photo.assigned === true
     })
     if (previousAssignedPhoto.length > 0) {
       await Photo.findByIdAndUpdate(previousAssignedPhoto[0]._id, {
-        assigned: false
+        assigned: false,
       })
     }
     const newAssignedPhoto = await Photo.findByIdAndUpdate(req.body.id, {
-      assigned: true
+      assigned: true,
     })
     res.json(newAssignedPhoto)
     return
@@ -143,14 +143,14 @@ router.post('/assign-photo', requireAuth, async (req, res) => {
   }
 })
 
-// @route  POST /api/photo/deltet
+// @route  POST /api/photo/delete
 // @desc   Delete a photo
 // @access Private
 router.post('/delete', requireAuth, async (req, res) => {
   const { id, publicId } = req.body
   try {
     const response = await cloudinary.v2.uploader.destroy(publicId, {
-      resource_type: 'image'
+      resource_type: 'image',
     })
     if (response.error || response.result === 'not found') {
       res.json({ error: `'Image' requested not found` })
@@ -162,7 +162,8 @@ router.post('/delete', requireAuth, async (req, res) => {
         res.json({ error: `"Photo" requested not found` })
         return
       }
-      res.json(photo)
+      const photos = await Photo.find({ _user: req.user.id })
+      res.json(photos)
       return
     }
   } catch (error) {
@@ -213,7 +214,7 @@ router.post('/', requireAuth, async (req, res) => {
         title,
         assigned: true,
         photoUrl,
-        publicId
+        publicId,
       })
       await photo.save()
       res.json(photo)
@@ -223,10 +224,11 @@ router.post('/', requireAuth, async (req, res) => {
       _user: req.user.id,
       title,
       photoUrl,
-      publicId
+      publicId,
     })
     await photo.save()
-    res.json(photo)
+    const photos = await Photo.find({ _user: req.user.id })
+    res.json(photos)
     return
   } catch (error) {
     console.log(error)
@@ -245,7 +247,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
