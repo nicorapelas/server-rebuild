@@ -217,7 +217,8 @@ router.post('/', requireAuth, async (req, res) => {
         publicId,
       })
       await photo.save()
-      res.json(photo)
+      const photos = await Photo.find({ _user: req.user.id })
+      res.json(photos)
       return
     }
     const photo = new Photo({
