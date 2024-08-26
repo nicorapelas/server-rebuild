@@ -256,7 +256,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Photo' requested not found` })
       return
     }
-    res.json(photo)
+    const photos = await Photo.find({ _user: req.user.id })
+    res.json(photos)
     return
   } catch (error) {
     console.log(error)
