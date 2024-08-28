@@ -10,7 +10,7 @@ const router = express.Router()
 cloudinary.config({
   cloud_name: keys.cloudinary.cloud_name,
   api_key: keys.cloudinary.api_key,
-  api_secret: keys.cloudinary.api_secret
+  api_secret: keys.cloudinary.api_secret,
 })
 
 // @route  GET /api/certificate/status
@@ -37,7 +37,7 @@ router.post('/delete', requireAuth, async (req, res) => {
   if (publicId.includes('image')) {
     try {
       const response = await cloudinary.v2.uploader.destroy(publicId, {
-        resource_type: 'image'
+        resource_type: 'image',
       })
       if (response.error || response.result === 'not found') {
         res.json({ error: `'Image' requested not found` })
@@ -59,7 +59,7 @@ router.post('/delete', requireAuth, async (req, res) => {
   } else {
     try {
       const response = await cloudinary.v2.uploader.destroy(publicId, {
-        resource_type: 'raw'
+        resource_type: 'raw',
       })
       if (response.error || response.result === 'not found') {
         res.json({ error: `'Document' requested not found` })
@@ -71,7 +71,8 @@ router.post('/delete', requireAuth, async (req, res) => {
           res.json({ error: `"Certificate" requested not found` })
           return
         }
-        res.json(certificate)
+        const certificates = await Certificate.find({ _user: req.user.id })
+        res.json(certificates)
         return
       }
     } catch (error) {
@@ -124,7 +125,7 @@ router.post('/', requireAuth, async (req, res) => {
       title,
       pdfUrl,
       photoUrl,
-      publicId
+      publicId,
     })
     await certificate.save()
     res.json(certificate)
@@ -146,7 +147,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
       {
         _user: req.user.id,
         lastUpdate: new Date(),
-        ...req.body
+        ...req.body,
       },
       { new: true }
     )
