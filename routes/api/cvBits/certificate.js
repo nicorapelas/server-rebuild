@@ -49,7 +49,8 @@ router.post('/delete', requireAuth, async (req, res) => {
           res.json({ error: `"Certificate" requested not found` })
           return
         }
-        res.json(certificate)
+        const certificates = await Certificate.find({ _user: req.user.id })
+        res.json(certificates)
         return
       }
     } catch (error) {
@@ -128,7 +129,8 @@ router.post('/', requireAuth, async (req, res) => {
       publicId,
     })
     await certificate.save()
-    res.json(certificate)
+    const certificates = await Certificate.find({ _user: req.user.id })
+    res.json(certificates)
     return
   } catch (error) {
     console.log(error)
@@ -155,7 +157,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Certificate' requested not found` })
       return
     }
-    res.json(certificate)
+    const certificates = await Certificate.find({ _user: req.user.id })
+    res.json(certificates)
     return
   } catch (error) {
     console.log(error)
