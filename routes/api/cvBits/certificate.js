@@ -119,6 +119,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @desc   Post a certificate
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
+  console.log(req.body)
   const { title, pdfUrl, photoUrl, publicId } = req.body
   try {
     const certificate = new Certificate({

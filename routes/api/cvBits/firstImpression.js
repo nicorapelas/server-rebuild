@@ -10,7 +10,7 @@ const router = express.Router()
 cloudinary.config({
   cloud_name: keys.cloudinary.cloud_name,
   api_key: keys.cloudinary.api_key,
-  api_secret: keys.cloudinary.api_secret
+  api_secret: keys.cloudinary.api_secret,
 })
 
 // @route  GET /api/first-impression/status
@@ -49,21 +49,22 @@ router.post('/delete', requireAuth, async (req, res) => {
   const { id, publicId } = req.body
   try {
     const response = await cloudinary.uploader.destroy(publicId, {
-      resource_type: 'video'
+      resource_type: 'video',
     })
     if (response.error || response.result === 'not found') {
       res.json({ error: `'Video' requested not found` })
       return
     }
     if (response.result === 'ok') {
-      const firstImpression = await FirstImpression.findByIdAndDelete({
-        _id: id
+      const firstImpressionToDelete = await FirstImpression.findByIdAndDelete({
+        _id: id,
       })
-      if (!firstImpression) {
+      if (!firstImpressionToDelete) {
         res.json({ error: `"First Impression" requested not found` })
         return
       }
-      res.json(firstImpression)
+      const firstImpression = await FirstImpression.find({ _user: req.user.id })
+      res.json(firstImpression[0])
       return
     }
   } catch (error) {
@@ -111,7 +112,7 @@ router.post('/', requireAuth, async (req, res) => {
   const { videoUrl, publicId } = req.body
   try {
     const checkFirstImpression = await FirstImpression.find({
-      _user: req.user.id
+      _user: req.user.id,
     })
     if (checkFirstImpression.length > 0) {
       res.json({ error: `'FirstImpression' length > 0 ` })
@@ -120,7 +121,7 @@ router.post('/', requireAuth, async (req, res) => {
     const firstImpression = new FirstImpression({
       _user: req.user.id,
       videoUrl,
-      publicId
+      publicId,
     })
     await firstImpression.save()
     res.json(firstImpression)
