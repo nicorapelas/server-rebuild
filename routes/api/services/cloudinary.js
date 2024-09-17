@@ -28,7 +28,6 @@ router.post('/signature-request-no-preset', requireAuth, async (req, res) => {
     signature,
     timestamp,
   }
-  console.log(`payload:`, payload)
   if (!payload.signature) {
     res.json({ error: 'signature request failed' })
     return

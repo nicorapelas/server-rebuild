@@ -41,7 +41,7 @@ const router = express.Router()
 cloudinary.config({
   cloud_name: keys.cloudinary.cloud_name,
   api_key: keys.cloudinary.api_key,
-  api_secret: keys.cloudinary.api_secret
+  api_secret: keys.cloudinary.api_secret,
 })
 
 // Nodemailer Handlebars
@@ -49,17 +49,17 @@ const handlebarOptions = {
   viewEngine: {
     extName: '.handlebars',
     partialsDir: path.resolve('./templates/mailTemplates'),
-    defaultLayout: false
+    defaultLayout: false,
   },
   viewPath: path.resolve('./templates/mailTemplates'),
-  extName: '.handlebars'
+  extName: '.handlebars',
 }
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: keys.google.authenticateUser,
-    pass: keys.google.authenticatePassword
-  }
+    pass: keys.google.authenticatePassword,
+  },
 })
 transporter.use('compile', hbs(handlebarOptions))
 // Register mailer options
@@ -70,8 +70,8 @@ mailManRegister = (email, id) => {
     subject: 'CV Cloud - User authentication',
     template: 'verifyEmailTemplate',
     context: {
-      id
-    }
+      id,
+    },
   }
   transporter.sendMail(mailOptionsRegister, (error, info) => {
     if (error) {
@@ -89,8 +89,8 @@ mailManForgotPassword = (email, token) => {
     subject: 'CV Cloud - User authentication',
     template: 'resetPasswordTemplate',
     context: {
-      token
-    }
+      token,
+    },
   }
   transporter.sendMail(mailOptionsForgotPassword, (error, info) => {
     if (error) {
@@ -123,7 +123,7 @@ router.post('/term-conditions', requireAuth, async (req, res) => {
     const user = await User.findByIdAndUpdate(
       _id,
       {
-        termsAndConditionsAccepted: accepted
+        termsAndConditionsAccepted: accepted,
       },
       { new: true }
     )
@@ -169,23 +169,23 @@ router.post('/register', async (req, res) => {
       affiliatceIntroCode,
       localId: true,
       recipients: { email },
-      created: Date.now()
+      created: Date.now(),
     })
     // Send verification email
     mailManRegister(email, newUser._id)
     await newUser.save()
     const newPersonalInfo = new PersonalInfo({
       _user: newUser._id,
-      fullName
+      fullName,
     })
     await newPersonalInfo.save()
     const newContactInfo = new ContactInfo({
       _user: newUser._id,
-      email
+      email,
     })
     await newContactInfo.save()
     return res.send({
-      success: `An 'email verification' email has been sent to you. Please open the email and follow the provided instructions.`
+      success: `An 'email verification' email has been sent to you. Please open the email and follow the provided instructions.`,
     })
   } catch (err) {
     return res.send(err.message)
@@ -195,51 +195,92 @@ router.post('/register', async (req, res) => {
 // @route  GET /auth/user/login
 // @desc   Login a user and respond with JWT
 // @access public
+// router.post('/login', async (req, res) => {
+//   // Validation check
+//   const { errors, isValid } = validateLoginInput(req.body)
+//   if (!isValid) {
+//     res.json({ error: errors })
+//     return
+//   }
+//   const { email, password } = req.body
+//   // Check if user with email registered
+//   const user = await User.findOne({ email })
+//   if (user) {
+//     if (user.facebookId) {
+//       errors.email = 'Login with Facebook'
+//       res.json({ error: errors })
+//       return
+//     }
+//   }
+//   if (!user) {
+//     errors.email = 'Invalid email or password'
+//     res.json({ error: errors })
+//     return
+//   }
+//   // Check if users email verified
+//   if (!user.emailVerified) {
+//     res.json({
+//       error: { notVerified: 'Email address not yet verified' }
+//     })
+//     return
+//   }
+//   try {
+//     await user.comparePassword(password)
+//     const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
+//     res.json({ token })
+//   } catch (err) {
+//     errors.password = 'Invalid email or password'
+//     res.json({ error: errors })
+//     return
+//   }
+// })
+
 router.post('/login', async (req, res) => {
+  console.log(`req.body::::::::`, req.body)
   // Validation check
   const { errors, isValid } = validateLoginInput(req.body)
   if (!isValid) {
-    res.json({ error: errors })
-    return
+    return res.status(400).json({ error: errors })
   }
   const { email, password } = req.body
-  // Check if user with email registered
-  const user = await User.findOne({ email })
-  if (user) {
+  try {
+    // Check if user with email registered
+    const user = await User.findOne({ email })
+    if (!user) {
+      errors.email = 'Invalid email or password'
+      return res.status(401).json({ error: errors })
+    }
+    // Check if user registered via Facebook
     if (user.facebookId) {
       errors.email = 'Login with Facebook'
-      res.json({ error: errors })
-      return
+      return res.status(400).json({ error: errors })
     }
-  }
-  if (!user) {
-    errors.email = 'Invalid email or password'
-    res.json({ error: errors })
-    return
-  }
-  // Check if users email verified
-  if (!user.emailVerified) {
-    res.json({
-      error: { notVerified: 'Email address not yet verified' }
-    })
-    return
-  }
-  try {
-    await user.comparePassword(password)
+    // Check if user's email is verified
+    if (!user.emailVerified) {
+      return res.status(400).json({
+        error: { notVerified: 'Email address not yet verified' },
+      })
+    }
+    // Compare password
+    const isMatch = await user.comparePassword(password)
+    if (!isMatch) {
+      errors.password = 'Invalid email or password'
+      return res.status(401).json({ error: errors })
+    }
+    // Generate JWT token
     const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
-    res.json({ token })
+    return res.status(200).json({ token })
   } catch (err) {
-    errors.password = 'Invalid email or password'
-    res.json({ error: errors })
-    return
+    console.error(err)
+    return res.status(500).json({ error: 'Server error' })
   }
 })
 
-const signToken = userID => {
+const signToken = (userID) => {
   return JWT.sign(
     {
       iss: 'NoobCoder',
-      sub: userID
+      sub: userID,
     },
     'NoobCoder',
     { expiresIn: '1h' }
@@ -276,7 +317,7 @@ router.post('/verify-email/', async (req, res) => {
     await User.findByIdAndUpdate(
       id,
       {
-        emailVerified: true
+        emailVerified: true,
       },
       { new: true }
     )
@@ -311,7 +352,7 @@ router.post('/verify-email/', async (req, res) => {
       _secondEdu: secondEdu,
       _skill: skill,
       _tertEdu: tertEdu,
-      _user: id
+      _user: id,
     })
     console.log(`Users first 'CurriculumVitae' document created`)
     await curriculumVitae.save()
@@ -331,13 +372,13 @@ router.post('/resend-verification-email', async (req, res) => {
   const user = await User.findOne({ email })
   const newUser = new User({
     _id: user._id,
-    recipients: { email }
+    recipients: { email },
   })
   // Send verification email
   try {
     await mailManRegister(email, newUser._id)
     res.json({
-      success: `An 'email verification' email has been sent to you. Please open the email and follow the provided instructions.`
+      success: `An 'email verification' email has been sent to you. Please open the email and follow the provided instructions.`,
     })
     return
   } catch (err) {
@@ -353,7 +394,7 @@ router.post('/resend-verification-email', async (req, res) => {
 router.post('/forgot', (req, res) => {
   const { email } = req.body
   async.waterfall([
-    done => {
+    (done) => {
       crypto.randomBytes(20, (err, buf) => {
         const token = buf.toString('hex')
         done(err, token)
@@ -374,34 +415,34 @@ router.post('/forgot', (req, res) => {
         if (user.googleId) {
           res.json({
             error: {
-              warn: `You've previously registered using Google, please login using Google`
-            }
+              warn: `You've previously registered using Google, please login using Google`,
+            },
           })
           return
         }
         if (user.facebookId) {
           res.json({
             error: {
-              warn: `You've previously registered using Facebook, please login using Facebook`
-            }
+              warn: `You've previously registered using Facebook, please login using Facebook`,
+            },
           })
           return
         }
         user.recipients = { email }
         user.resetPasswordToken = token
         user.resetPasswordExpires = Date.now() + 3600000
-        user.save(err => {
+        user.save((err) => {
           done(err, token, user)
         })
       })
     },
-    async token => {
+    async (token) => {
       // Send email for verification and save user
       try {
         await mailManForgotPassword(email, token)
         res.json({
           success: `A "password reset" email was sent to you. Please view the email and click on the provided "Reset password"
-        link, within the email.`
+        link, within the email.`,
         })
         return
       } catch (err) {
@@ -409,7 +450,7 @@ router.post('/forgot', (req, res) => {
         console.log(err)
         return
       }
-    }
+    },
   ])
 })
 
@@ -417,7 +458,7 @@ router.get('/reset/:token', (req, res) => {
   User.findOne(
     {
       resetPasswordToken: req.params.token,
-      resetPasswordExpires: { $gt: Date.now() }
+      resetPasswordExpires: { $gt: Date.now() },
     },
     (err, user) => {
       if (!user) {
@@ -434,19 +475,19 @@ router.post('/reset', (req, res) => {
   const { password, token } = req.body
   async.waterfall(
     [
-      done => {
+      (done) => {
         User.findOne(
           {
             resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+            resetPasswordExpires: { $gt: Date.now() },
           },
           (err, user) => {
             if (!user) {
               res.json({
                 error: {
                   token:
-                    'Reset token has expired, please try reseting your password again'
-                }
+                    'Reset token has expired, please try reseting your password again',
+                },
               })
               return
             }
@@ -463,13 +504,13 @@ router.post('/reset', (req, res) => {
             user
               .save()
               .then(res.json({ success: 'Password reset succefull' }))
-              .catch(err => err)
+              .catch((err) => err)
             return
           }
         )
-      }
+      },
     ],
-    err => {
+    (err) => {
       res.json(err)
       console.log(err)
       return
@@ -488,7 +529,7 @@ router.patch('/visit-count', requireAuth, async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       {
-        visitCount: visitCount + 1
+        visitCount: visitCount + 1,
       },
       { new: true }
     )
@@ -520,14 +561,14 @@ router.patch('/create-affiliate', requireAuth, async (req, res) => {
         return
       }
       const userContactInfo = await ContactInfo.findOne({
-        _user: user._id
+        _user: user._id,
       })
       if (!userContactInfo.email || !userContactInfo.phone) {
         res.json({ error: 'insufficient contact info' })
         return
       }
       const userPersonalInfo = await PersonalInfo.findOne({
-        _user: user._id
+        _user: user._id,
       })
       if (!userPersonalInfo.fullName) {
         res.json({ error: 'insufficient personal info' })
@@ -541,7 +582,7 @@ router.patch('/create-affiliate', requireAuth, async (req, res) => {
         email: userContactInfo.email,
         code:
           userPersonalInfo.fullName.slice(0, 2).toLowerCase() +
-          userContactInfo.phone.slice(5, 10)
+          userContactInfo.phone.slice(5, 10),
       })
       await affiliate.save()
       console.log(affiliate)
@@ -549,12 +590,12 @@ router.patch('/create-affiliate', requireAuth, async (req, res) => {
       const updatedUser = await User.findOneAndUpdate(
         { email: userEmail },
         {
-          affiliate: true
+          affiliate: true,
         },
         { new: true }
       )
       res.json({
-        success: `${updatedUser.email} updated to affiliate successfully`
+        success: `${updatedUser.email} updated to affiliate successfully`,
       })
       return
     } catch (error) {
@@ -633,7 +674,7 @@ router.patch('/apply-to-intro', requireAuth, async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       {
-        introComplete: true
+        introComplete: true,
       },
       { new: true }
     )
@@ -715,7 +756,7 @@ router.patch('/apply-to-intro', requireAuth, async (req, res) => {
   const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
     {
-      introComplete: true
+      introComplete: true,
     },
     { new: true }
   )
@@ -728,7 +769,7 @@ router.patch('/apply-to-intro', requireAuth, async (req, res) => {
   await Affiliate.findOneAndUpdate(
     { code: affiliatceIntroCode },
     {
-      introductions: introductions + 1
+      introductions: introductions + 1,
     },
     { new: true }
   )
@@ -736,12 +777,12 @@ router.patch('/apply-to-intro', requireAuth, async (req, res) => {
   return
 })
 
-const deleteCloudinaryGoods = publicId => {
-  publicId.map(async pId => {
+const deleteCloudinaryGoods = (publicId) => {
+  publicId.map(async (pId) => {
     if (pId.includes('photo')) {
       try {
         const response = await cloudinary.v2.uploader.destroy(pId, {
-          resource_type: 'image'
+          resource_type: 'image',
         })
         if (response.error || response.result === 'not found') {
           console.log({ error: `'Image' requested not found` })
@@ -754,7 +795,7 @@ const deleteCloudinaryGoods = publicId => {
     if (pId.includes('image')) {
       try {
         const response = await cloudinary.v2.uploader.destroy(pId, {
-          resource_type: 'image'
+          resource_type: 'image',
         })
         if (response.error || response.result === 'not found') {
           console.log({ error: `'Image' requested not found` })
@@ -767,7 +808,7 @@ const deleteCloudinaryGoods = publicId => {
     if (pId.includes('video')) {
       try {
         const response = await cloudinary.v2.uploader.destroy(pId, {
-          resource_type: 'video'
+          resource_type: 'video',
         })
         if (response.error || response.result === 'not found') {
           console.log({ error: `'Image' requested not found` })
@@ -780,7 +821,7 @@ const deleteCloudinaryGoods = publicId => {
     if (pId.includes('pdf')) {
       try {
         const response = await cloudinary.v2.uploader.destroy(pId, {
-          resource_type: 'raw'
+          resource_type: 'raw',
         })
         if (response.error || response.result === 'not found') {
           console.log({ error: `'Document' requested not found` })
@@ -799,21 +840,21 @@ const deleteCloudinaryGoods = publicId => {
 router.delete('/delete-account', requireAuth, async (req, res) => {
   // Delete certificates
   const certificates = await Certificate.find({ _user: req.user.id })
-  const certificatePublicIds = certificates.map(certificate => {
+  const certificatePublicIds = certificates.map((certificate) => {
     return certificate.publicId
   })
   deleteCloudinaryGoods(certificatePublicIds)
   await Certificate.deleteMany({ _user: req.user.id })
   // Delete photos
   const photos = await Photo.find({ _user: req.user.id })
-  const photoPublicIds = photos.map(photo => {
+  const photoPublicIds = photos.map((photo) => {
     return photo.publicId
   })
   deleteCloudinaryGoods(photoPublicIds)
   await Photo.deleteMany({ _user: req.user.id })
   // Delete first impression video
   const firstImpressions = await FirstImpression.find({ _user: req.user.id })
-  const firstImpressionPublicIds = firstImpressions.map(firstImpression => {
+  const firstImpressionPublicIds = firstImpressions.map((firstImpression) => {
     return firstImpression.publicId
   })
   deleteCloudinaryGoods(firstImpressionPublicIds)
