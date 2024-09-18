@@ -5,78 +5,78 @@ const RecipientSchema = require('./Recipient')
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true
+    required: true,
   },
   email: {
     type: String,
-    required: true
+    required: true,
   },
   password: {
-    type: String
+    type: String,
   },
   localId: {
     type: Boolean,
-    default: false
+    default: false,
   },
   googleId: {
     type: Boolean,
-    default: false
+    default: false,
   },
   facebookId: {
     type: Boolean,
-    default: false
+    default: false,
   },
   facebookIdNumber: {
-    type: String
+    type: String,
   },
   emailVerified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   termsAndConditionsAccepted: {
     type: Boolean,
-    default: false
+    default: false,
   },
   resetPasswordToken: {
-    type: String
+    type: String,
   },
   resetPasswordExpires: {
-    type: Date
+    type: Date,
   },
   avatar: {
     type: String,
-    default: ''
+    default: '',
   },
   affiliate: {
     type: Boolean,
-    default: false
+    default: false,
   },
   affiliatceIntroCode: {
-    type: String
+    type: String,
   },
   credits: {
     type: Number,
-    default: 0
+    default: 0,
   },
   visitCount: {
     type: Number,
-    default: 1
+    default: 1,
   },
   introAffiliateCode: {
-    type: String
+    type: String,
   },
   introComplete: {
     type: Boolean,
-    default: false
+    default: false,
   },
   recipients: [RecipientSchema],
   created: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 })
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
   const user = this
   if (!user.isModified('password')) {
     return next()
@@ -95,17 +95,20 @@ userSchema.pre('save', function(next) {
   })
 })
 
-userSchema.methods.comparePassword = function(candidatePassword) {
+userSchema.methods.comparePassword = function (candidatePassword) {
+  console.log(`candidatePassword:`, candidatePassword)
   const user = this
-
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, user.password, (err, isMatch) => {
       if (err) {
+        console.log(`modal err1`, err)
         return reject(err)
       }
       if (!isMatch) {
+        console.log(`!isMatch:`, !isMatch)
         return reject(false)
       }
+      console.log(`true`)
       resolve(true)
     })
   })

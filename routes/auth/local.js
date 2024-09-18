@@ -195,89 +195,46 @@ router.post('/register', async (req, res) => {
 // @route  GET /auth/user/login
 // @desc   Login a user and respond with JWT
 // @access public
-// router.post('/login', async (req, res) => {
-//   // Validation check
-//   const { errors, isValid } = validateLoginInput(req.body)
-//   if (!isValid) {
-//     res.json({ error: errors })
-//     return
-//   }
-//   const { email, password } = req.body
-//   // Check if user with email registered
-//   const user = await User.findOne({ email })
-//   if (user) {
-//     if (user.facebookId) {
-//       errors.email = 'Login with Facebook'
-//       res.json({ error: errors })
-//       return
-//     }
-//   }
-//   if (!user) {
-//     errors.email = 'Invalid email or password'
-//     res.json({ error: errors })
-//     return
-//   }
-//   // Check if users email verified
-//   if (!user.emailVerified) {
-//     res.json({
-//       error: { notVerified: 'Email address not yet verified' }
-//     })
-//     return
-//   }
-//   try {
-//     await user.comparePassword(password)
-//     const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
-//     res.json({ token })
-//   } catch (err) {
-//     errors.password = 'Invalid email or password'
-//     res.json({ error: errors })
-//     return
-//   }
-// })
-
 router.post('/login', async (req, res) => {
-  console.log(`req.body::::::::`, req.body)
+  console.log(`req.body`, req.body)
   // Validation check
   const { errors, isValid } = validateLoginInput(req.body)
   if (!isValid) {
-    return res.status(400).json({ error: errors })
+    console.log(`!isValid`)
+    res.json({ error: errors })
+    return
   }
   const { email, password } = req.body
-  try {
-    // Check if user with email registered
-    const user = await User.findOne({ email })
-    if (!user) {
-      errors.email = 'Invalid email or password'
-      return res.status(401).json({ error: errors })
-    }
-    // Check if user registered via Facebook
-    if (user.facebookId) {
-      errors.email = 'Login with Facebook'
-      return res.status(400).json({ error: errors })
-    }
-    // Check if user's email is verified
-    if (!user.emailVerified) {
-      return res.status(400).json({
+  const user = await User.findOne({ email })
+  if (!user) {
+    console.log(`!user`)
+    errors.email = 'Invalid email or password'
+    res.json({ error: errors })
+    return
+  } else {
+    const { emailVerified } = user
+    if (!emailVerified) {
+      console.log(`!emailVerified`)
+      res.json({
         error: { notVerified: 'Email address not yet verified' },
       })
+      return
+    } else {
+      try {
+        await user.comparePassword(password)
+        const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
+        res.json({ token })
+      } catch (err) {
+        errors.password = 'Invalid email or password'
+        res.json({ error: errors })
+        return
+      }
     }
-    // Compare password
-    const isMatch = await user.comparePassword(password)
-    if (!isMatch) {
-      errors.password = 'Invalid email or password'
-      return res.status(401).json({ error: errors })
-    }
-    // Generate JWT token
-    const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
-    return res.status(200).json({ token })
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({ error: 'Server error' })
   }
 })
 
 const signToken = (userID) => {
-  return JWT.sign(
+  return jwt.sign(
     {
       iss: 'NoobCoder',
       sub: userID,
