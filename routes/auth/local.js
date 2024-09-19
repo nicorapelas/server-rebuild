@@ -105,12 +105,21 @@ mailManForgotPassword = (email, token) => {
 // @desc   Fetch current user
 // @access public
 router.get('/fetch-user', requireAuth, (req, res) => {
-  if (!req.user) {
-    res.json({ error: 'no user signed' })
-    return
+  try {
+    const user = req.user
+    if (!user) {
+      res.json({ error: 'no user' })
+      return
+    } else {
+      // Destructure the user object to exclude the 'recipients' field
+      const { recipients, ...userWithoutRecipients } = user.toObject()
+      res.json(userWithoutRecipients)
+      return
+    }
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: 'Server error' })
   }
-  res.json(req.user)
-  return
 })
 
 // @route  POST /auth/user/terms-conditions
@@ -196,40 +205,35 @@ router.post('/register', async (req, res) => {
 // @desc   Login a user and respond with JWT
 // @access public
 router.post('/login', async (req, res) => {
-  console.log(`req.body`, req.body)
   // Validation check
   const { errors, isValid } = validateLoginInput(req.body)
   if (!isValid) {
-    console.log(`!isValid`)
     res.json({ error: errors })
     return
   }
   const { email, password } = req.body
+  // Check if user with email registered
   const user = await User.findOne({ email })
   if (!user) {
-    console.log(`!user`)
     errors.email = 'Invalid email or password'
     res.json({ error: errors })
     return
-  } else {
-    const { emailVerified } = user
-    if (!emailVerified) {
-      console.log(`!emailVerified`)
-      res.json({
-        error: { notVerified: 'Email address not yet verified' },
-      })
-      return
-    } else {
-      try {
-        await user.comparePassword(password)
-        const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
-        res.json({ token })
-      } catch (err) {
-        errors.password = 'Invalid email or password'
-        res.json({ error: errors })
-        return
-      }
-    }
+  }
+  // Check if users email verified
+  if (!user.emailVerified) {
+    res.json({
+      error: { notVerified: 'Email address not yet verified' },
+    })
+    return
+  }
+  try {
+    await user.comparePassword(password)
+    const token = jwt.sign({ userId: user._id }, keys.JWT.secret)
+    res.json({ token })
+  } catch (err) {
+    errors.password = 'Invalid email or password'
+    res.json({ error: errors })
+    return
   }
 })
 
