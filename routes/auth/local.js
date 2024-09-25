@@ -112,8 +112,9 @@ router.get('/fetch-user', requireAuth, (req, res) => {
       return
     } else {
       // Destructure the user object to exclude the 'recipients' field
-      const { recipients, ...userWithoutRecipients } = user.toObject()
-      res.json(userWithoutRecipients)
+      // const { recipients, ...userWithoutRecipients } = user.toObject()
+      // res.json(userWithoutRecipients)
+      res.json(user)
       return
     }
   } catch (error) {
