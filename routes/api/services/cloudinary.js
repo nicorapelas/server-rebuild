@@ -53,6 +53,7 @@ router.post(
       signature,
       timestamp,
     }
+    console.log(`payload:`, payload)
     if (!payload.signature) {
       res.json({ error: 'signature request failed' })
       return

@@ -63,7 +63,6 @@ router.get('/', requireAuth, async (req, res) => {
 // @desc   Post personal summary
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
-  console.log(`body:`, req.body)
   try {
     // Query DB
     let firstCheck = await PersonalSummary.find({ _user: req.user.id })
@@ -148,8 +147,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Personal Summary' requested not found` })
       return
     }
-    // Return deleted about me content
-    res.json(personalSummary)
+    const personalSummarys = await PersonalSummary.find({ _user: req.user.id })
+    res.json(personalSummarys)
     return
   } catch (error) {
     console.log(error)
