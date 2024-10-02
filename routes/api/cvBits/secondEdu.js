@@ -75,12 +75,13 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @desc   Post secondary education
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
-  const { schoolName, startDate, endDate } = req.body
+  console.log(`req.body:`, req.body)
+  const { schoolName, startYear, endYear } = req.body
   if (!schoolName || schoolName.length < 1) {
     res.json({ error: { schoolName: `'School Name' is required` } })
     return
   }
-  if (moment(startDate) > moment(endDate)) {
+  if (moment(startYear) > moment(endYear)) {
     res.json({ error: { dates: `'Dates' are invalid` } })
     return
   }
@@ -88,6 +89,8 @@ router.post('/', requireAuth, async (req, res) => {
     // Create secondEdu
     const secondEdu = new SecondEdu({
       _user: req.user.id,
+      startDate: startYear,
+      endDate: endYear,
       ...req.body,
     })
     await secondEdu.save()
