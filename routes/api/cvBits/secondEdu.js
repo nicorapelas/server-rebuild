@@ -1,6 +1,5 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const moment = require('moment')
 const SecondEdu = mongoose.model('SecondEdu')
 const keys = require('../../../config/keys').keys
 const requireAuth = require('../../../middlewares/requireAuth')
@@ -75,14 +74,9 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @desc   Post secondary education
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
-  console.log(`req.body:`, req.body)
   const { schoolName, startYear, endYear } = req.body
   if (!schoolName || schoolName.length < 1) {
     res.json({ error: { schoolName: `'School Name' is required` } })
-    return
-  }
-  if (moment(startYear) > moment(endYear)) {
-    res.json({ error: { dates: `'Dates' are invalid` } })
     return
   }
   try {
@@ -107,14 +101,10 @@ router.post('/', requireAuth, async (req, res) => {
 // @desc   Update secondary education
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { schoolName, startDate, endDate, subjects, additionalInfo } =
+  const { schoolName, startYear, endYear, subjects, additionalInfo } =
     req.body.formValues
   if (!schoolName || schoolName.length < 1) {
     res.json({ error: { schoolName: `'School Name' is required` } })
-    return
-  }
-  if (moment(startDate) > moment(endDate)) {
-    res.json({ error: { dates: `'Dates' are invalid` } })
     return
   }
   try {
@@ -125,8 +115,8 @@ router.patch('/:id', requireAuth, async (req, res) => {
         _user: req.user.id,
         lastUpdate: new Date(),
         schoolName,
-        startDate,
-        endDate,
+        startDate: startYear,
+        endDate: endYear,
         subjects,
         additionalInfo,
       },
