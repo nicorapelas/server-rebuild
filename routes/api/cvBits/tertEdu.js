@@ -91,6 +91,7 @@ router.post('/', requireAuth, async (req, res) => {
     })
     await tertEdu.save()
     let tertEdus = await TertEdu.find({ _user: req.user.id })
+    console.log(`tertEdus:`, tertEdus)
     res.json(tertEdus)
     return
   } catch (error) {

@@ -215,7 +215,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Personal Info' requested not found` })
       return
     }
-    res.json(personalInfo)
+    let personalInfos = await PersonalInfo.find({ _user: req.user.id })
+    res.json(personalInfos)
     return
   } catch (error) {
     console.log(error)
