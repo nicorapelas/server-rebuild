@@ -152,7 +152,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
       res.json({ error: `'Contact Info' requested not found` })
       return
     }
-    res.json(contactInfo)
+    const contactInfos = await ContactInfo.find({ _user: req.user.id })
+    res.json(contactInfos)
     return
   } catch (error) {
     console.log(error)
