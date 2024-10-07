@@ -15,7 +15,6 @@ cloudinary.config({
 // @desc   Generate an upload signature
 // @access Private
 router.post('/signature-request-no-preset', requireAuth, async (req, res) => {
-  console.log(`yebo:`, req.body)
   const timestamp = Math.round(Date.now() / 1000)
   const signature = cloudinary.utils.api_sign_request(
     {
@@ -53,7 +52,6 @@ router.post(
       signature,
       timestamp,
     }
-    console.log(`payload:`, payload)
     if (!payload.signature) {
       res.json({ error: 'signature request failed' })
       return

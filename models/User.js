@@ -96,19 +96,15 @@ userSchema.pre('save', function (next) {
 })
 
 userSchema.methods.comparePassword = function (candidatePassword) {
-  console.log(`candidatePassword:`, candidatePassword)
   const user = this
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, user.password, (err, isMatch) => {
       if (err) {
-        console.log(`modal err1`, err)
         return reject(err)
       }
       if (!isMatch) {
-        console.log(`!isMatch:`, !isMatch)
         return reject(false)
       }
-      console.log(`true`)
       resolve(true)
     })
   })

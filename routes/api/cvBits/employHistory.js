@@ -73,8 +73,7 @@ router.get('/:id', async (req, res) => {
 // @desc   Post employment history
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
-  console.log(`body:`, req.body)
-  const { company, startDate, endDate } = req.body
+  const { company } = req.body
   if (company.length < 1) {
     res.json({ error: { company: `'Company Name' is required` } })
     return
@@ -132,16 +131,13 @@ router.patch('/:id', requireAuth, async (req, res) => {
 // @desc   Delete emploment history
 // @access Private
 router.delete('/:id', requireAuth, async (req, res) => {
-  console.log(`req.params.id:`, req.params.id)
   try {
     const employHistory = await EmployHistory.findByIdAndRemove(req.params.id)
-    console.log(`remove:`, employHistory)
     if (!employHistory) {
       res.json({ error: `'Employment history' requested not found` })
       return
     }
     const employHistorys = await EmployHistory.find({ _user: req.user.id })
-    console.log(`employHistorys:`, employHistorys)
     res.json(employHistorys)
     return
   } catch (error) {

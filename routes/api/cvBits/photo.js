@@ -206,7 +206,6 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
   const { title, photoUrl, publicId } = req.body
-  console.log(`req.body:>`, req.body)
   try {
     const usersPhotos = await Photo.find({ _user: req.user.id })
     if (usersPhotos.length < 1) {

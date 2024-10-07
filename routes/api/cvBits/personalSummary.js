@@ -110,7 +110,6 @@ router.get('/:id', requireAuth, async (req, res) => {
 // @desc   Update PersonalSumarry
 // @access Private
 router.patch('/:id', requireAuth, async (req, res) => {
-  console.log(req.body)
   const { content } = req.body
   if (content.length < 1) {
     res.json({ error: `'Content' is required` })

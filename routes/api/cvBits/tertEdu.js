@@ -91,7 +91,6 @@ router.post('/', requireAuth, async (req, res) => {
     })
     await tertEdu.save()
     let tertEdus = await TertEdu.find({ _user: req.user.id })
-    console.log(`tertEdus:`, tertEdus)
     res.json(tertEdus)
     return
   } catch (error) {
@@ -103,9 +102,7 @@ router.post('/', requireAuth, async (req, res) => {
 // @route  PATCH /api/tertiary-education/:id
 // @desc   Update tertiary education
 // @access Private
-
 router.patch('/:id', requireAuth, async (req, res) => {
-  console.log(req.body)
   const {
     instituteName,
     startDate,
@@ -145,7 +142,6 @@ router.patch('/:id', requireAuth, async (req, res) => {
       return
     }
     let tertEdus = await TertEdu.find({ _user: req.user.id })
-    console.log(`tertEdus:`, tertEdus)
     res.json(tertEdus)
     return
   } catch (error) {
@@ -153,44 +149,6 @@ router.patch('/:id', requireAuth, async (req, res) => {
     return
   }
 })
-
-// router.patch('/:id', requireAuth, async (req, res) => {
-//   console.log(req.params.id)
-//   const { instituteName, startDate, endDate } = req.body.formValues
-//   if (!instituteName || instituteName.length < 1) {
-//     res.json({ error: { instituteName: `'Institute Name' is required` } })
-//     return
-//   }
-//   if (moment(startDate) > moment(endDate)) {
-//     res.json({ error: { dates: `'Dates' are invalid` } })
-//     return
-//   }
-//   try {
-//     // Do update
-//     const tertEdu = await TertEdu.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         _user: req.user.id,
-//         lastUpdate: new Date(),
-//         ...req.body,
-//       },
-//       { new: true }
-//     )
-//     if (!tertEdu) {
-//       res.json({
-//         error: { notFound: `'Tertiary Education' requested not found` },
-//       })
-//       return
-//     }
-//     console.log(`tertEdu:`, tertEdu)
-//     const tertEdus = await TertEdu.find({ _user: req.user.id })
-//     res.json(tertEdus)
-//     return
-//   } catch (error) {
-//     console.log(error)
-//     return
-//   }
-// })
 
 // @route  DELETE /api/tertiary-education/:id
 // @desc   Delete tertiary education
