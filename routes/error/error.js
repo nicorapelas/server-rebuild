@@ -9,17 +9,18 @@ const router = express.Router()
 // @desc   Post error
 // @access Private
 router.post('/', requireAuth, async (req, res) => {
+  const { error } = req.body
   try {
-    // Create error
-    const error = new Error({
+    const savedError = new Error({
       _user: req.user.id,
-      ...req.body
+      savedError: error.message
     })
-    await error.save()
-    res.json(error)
+    await savedError.save()
+    console.log(`savedError:`, savedError);
+    res.json(savedError)
     return
-  } catch (error) {
-    console.log(error)
+  } catch (err) {
+    console.log(err)
   }
 })
 
