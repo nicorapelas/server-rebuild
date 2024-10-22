@@ -135,6 +135,7 @@ router.post('/assign-photo', requireAuth, async (req, res) => {
     const newAssignedPhoto = await Photo.findByIdAndUpdate(req.body.id, {
       assigned: true,
     })
+    console.log(`newAssignedPhoto:`, newAssignedPhoto);
     res.json(newAssignedPhoto)
     return
   } catch (error) {
