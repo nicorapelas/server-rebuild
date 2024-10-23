@@ -99,25 +99,6 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 })
 
-// // @route  GET /api/photo/
-// // @desc   Get a photo
-// // @access Private
-// router.get('/assigned', requireAuth, async (req, res) => {
-//   try {
-//     const photo = await Photo.find({ _user: req.user.id })
-//     if (!photo) {
-//       res.json({ error: `'Assigned image' requested not found` })
-//       return
-//     }
-//     // Return deleted photo
-//     res.json(photo)
-//     return
-//   } catch (error) {
-//     console.log(error)
-//     return
-//   }
-// })
-
 // @route  POST /api/photo/assign-photo
 // @desc   Assign photo to cv
 // @access Private
@@ -132,11 +113,11 @@ router.post('/assign-photo', requireAuth, async (req, res) => {
         assigned: false,
       })
     }
-    const newAssignedPhoto = await Photo.findByIdAndUpdate(req.body.id, {
+    await Photo.findByIdAndUpdate(req.body.id, {
       assigned: true,
     })
-    console.log(`newAssignedPhoto:`, newAssignedPhoto);
-    res.json(newAssignedPhoto)
+    const allPhotos = await Photo.find({ _user: req.user.id })
+    res.json(allPhotos)
     return
   } catch (error) {
     console.log(error)
@@ -261,7 +242,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
     res.json(photos)
     return
   } catch (error) {
-    // console.log(error)
+    console.log(error)
     return
   }
 })
